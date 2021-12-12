@@ -1,0 +1,3 @@
+Solutions for Advent of Code, optimized purely for implementation speed, with little/no edits afterwards.
+
+All solutions take input on stdin and output at least the answer to part 2 on stdout (and sometimes part 1).
