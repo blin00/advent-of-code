@@ -3,6 +3,9 @@ from operator import add
 from collections import deque, defaultdict, Counter
 import copy
 
+import sys
+sys.setrecursionlimit(int(1e7))
+
 # convention that positive y is down
 # increment to clockwise/turn right, decrement to counterclockwise/turn left
 DIRS = {
@@ -189,3 +192,46 @@ def ordch(ch: str) -> int:
     if x >= ord('a') and x <= ord('z'): return x - ord('a')
     if x >= ord('A') and x <= ord('Z'): return x - ord('A')
     raise Exception(f"{ch} is not alphabetic")
+
+def add_interval(ss, L, R):
+    # [L, R)
+    assert L <= R
+    if L == R:
+        return None
+    idx = ss.bisect_left((L, R))
+    while idx < len(ss):
+        ival = ss[idx]
+        if ival[0] > R:
+            break
+        R = max(R, ival[1])
+        ss.pop(idx)
+    if idx > 0:
+        idx -= 1
+        ival = ss[idx]
+        if ival[1] >= L:
+            L = min(L, ival[0])
+            R = max(R, ival[1])
+            ss.pop(idx)
+    res = (L, R)
+    ss.add(res)
+    return res
+
+def remove_interval(ss, L, R):
+    # [L, R)
+    assert L <= R
+    if L == R:
+        return
+    added = add_interval(ss, L, R)
+    r2 = added[1]
+    ss.remove(added)
+    if added[0] != L:
+        ss.add((added[0], L))
+    if R != r2:
+        ss.add((R, r2))
+
+def pad_grid(grid, ch=' '):
+    C = max(len(row) for row in grid)
+    for i in range(len(grid)):
+        if len(grid[i]) < C:
+            grid[i] += ch * (C - len(grid[i]))
+    return grid
