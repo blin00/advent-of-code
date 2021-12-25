@@ -90,8 +90,8 @@ def max_by(f, arr):
 def parse_coord(line):
     return tuple(map(int, line.split(',')))
 
-def metric_taxi(p1, p2):
-    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+def metric_taxi(a, b):
+    return sum(abs(a[i] - b[i]) for i in range(len(a)))
 
 def move_by(d, p):
     if isinstance(d, int):
