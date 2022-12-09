@@ -28,6 +28,11 @@ DIRS_M = {
 
 INF = float('inf')
 
+def sgn(x):
+    if x == 0:
+        return 0
+    return x // abs(x)
+
 class UniqueQueue():
     def __init__(self, contents=None):
         self.deque = deque()
