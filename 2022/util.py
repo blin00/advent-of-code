@@ -240,3 +240,38 @@ def pad_grid(grid, ch=' '):
         if len(grid[i]) < C:
             grid[i] += ch * (C - len(grid[i]))
     return grid
+
+def n4(i, j, R=None, C=None):
+    for di, dj in ((-1, 0), (0, -1), (1, 0), (0, 1)):
+        ii = i + di
+        jj = j + dj
+        if R is not None:
+            if ii < 0 or ii >= R:
+                continue
+        if C is not None:
+            if jj < 0 or jj >= C:
+                continue
+        yield ii, jj
+
+def n8(i, j, R=None, C=None):
+    for di in range(-1, 2):
+        for dj in range(-1, 2):
+            ii = i + di
+            jj = j + dj
+            if not ii and not jj:
+                continue
+            if R is not None:
+                if ii < 0 or ii >= R:
+                    continue
+            if C is not None:
+                if jj < 0 or dj >= C:
+                    continue
+            yield ii, jj
+
+def n5(i, j, R=None, C=None):
+    yield i, j
+    yield from n4(i, j, R, C)
+
+def n9(i, j, R=None, C=None):
+    yield i, j
+    yield from n8(i, j, R, C)
