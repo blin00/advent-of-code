@@ -2,6 +2,7 @@ import re
 from operator import add
 from collections import deque, defaultdict, Counter
 import copy
+import itertools
 
 import sys
 sys.setrecursionlimit(int(1e7))
@@ -275,3 +276,43 @@ def n5(i, j, R=None, C=None):
 def n9(i, j, R=None, C=None):
     yield i, j
     yield from n8(i, j, R, C)
+
+def n4d(pt):
+    d = len(pt)
+    for i in range(d):
+        for sgn in (-1, 1):
+            pt2 = list(pt)
+            pt2[i] += sgn
+            yield tuple(pt2)
+
+def n8d(pt):
+    d = len(pt)
+    for choice in itertools.product((-1, 0, 1), repeat=d):
+        if not(any(choice)):
+            continue
+        pt2 = list(pt)
+        for i, sgn in enumerate(choice):
+            pt2[i] += sgn
+        yield tuple(pt2)
+
+def rline(x0, y0, x1, y1):
+    # handles horizontal, vertical, and diagonal lines
+    if x0 == x1:
+        y0, y1 = sorted((y0, y1))
+        for y in range(y0, y1 + 1):
+            yield x0, y
+    elif y0 == y1:
+        x0, x1 = sorted((x0, x1))
+        for x in range(x0, x1 + 1):
+            yield x, y0
+    else:
+        assert abs(x1 - x0) == abs(y1 - y0), 'line is neither horizontal, vertical, nor diagonal'
+        dx = 1 if x1 > x0 else -1
+        dy = 1 if y1 > y0 else -1
+        x = x0
+        y = y0
+        while x != x1:
+            yield x, y
+            x += dx
+            y += dy
+        yield x, y
