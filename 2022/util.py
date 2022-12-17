@@ -316,3 +316,9 @@ def rline(x0, y0, x1, y1):
             x += dx
             y += dy
         yield x, y
+
+def ints(s, expected=None):
+    res = map(int, re.findall(r'-?\d+', s))
+    if expected is not None:
+        assert len(res) == expected, f"for string {s}, expected {expected} ints, got {len(res)} ({res})"
+    return res
