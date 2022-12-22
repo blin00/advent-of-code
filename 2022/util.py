@@ -5,10 +5,11 @@ import copy
 import itertools
 
 import sys
-sys.setrecursionlimit(int(1e7))
+sys.setrecursionlimit(int(1e7)) # segfault == you done messed up
 
 # convention that positive y is down
 # increment to clockwise/turn right, decrement to counterclockwise/turn left
+# index with grid[y][x]
 DIRS = {
     0: (0, -1),
     1: (1, 0),
