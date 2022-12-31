@@ -1,8 +1,8 @@
 import re
 from operator import add
-from collections import deque, defaultdict, Counter
-import copy
+from collections import defaultdict, Counter
 import itertools
+import math
 
 import sys
 sys.setrecursionlimit(int(1e7)) # segfault == you done messed up
@@ -10,6 +10,8 @@ sys.setrecursionlimit(int(1e7)) # segfault == you done messed up
 # convention that positive y is down
 # increment to clockwise/turn right, decrement to counterclockwise/turn left
 # index with grid[y][x]
+
+# this is x, y meta
 DIRS = {
     0: (0, -1),
     1: (1, 0),
@@ -28,33 +30,13 @@ DIRS_M = {
     'W': 3,
 }
 
-INF = float('inf')
+inf = INF = float('inf')
 
 def sgn(x):
     if x == 0:
         return 0
     return x // abs(x)
 
-class UniqueQueue():
-    def __init__(self, contents=None):
-        self.deque = deque()
-        self.set = set()
-        if contents is not None:
-            for x in contents:
-                self.push(x)
-
-    def __len__(self):
-        return len(self.deque)
-
-    def push(self, x):
-        if x not in self.set:
-            self.deque.appendleft(x)
-            self.set.add(x)
-
-    def pop(self):
-        x = self.deque.pop()
-        self.set.remove(x)
-        return x
 
 def read_input(fname, t=lambda x: x, strip_lines=True, force_multi=False):
     with open(fname, 'r') as f:
@@ -243,40 +225,44 @@ def pad_grid(grid, ch=' '):
             grid[i] += ch * (C - len(grid[i]))
     return grid
 
-def n4(i, j, R=None, C=None):
+def n4(i, j, mi=None, mj=None):
+    """(x, y, C, R) or (i, j, R, C)"""
     for di, dj in ((-1, 0), (0, -1), (1, 0), (0, 1)):
         ii = i + di
         jj = j + dj
-        if R is not None:
-            if ii < 0 or ii >= R:
+        if mi is not None:
+            if ii < 0 or ii >= mi:
                 continue
-        if C is not None:
-            if jj < 0 or jj >= C:
+        if mj is not None:
+            if jj < 0 or jj >= mj:
                 continue
         yield ii, jj
 
-def n8(i, j, R=None, C=None):
+def n8(i, j, mi=None, mj=None):
+    """(x, y, C, R) or (i, j, R, C)"""
     for di in range(-1, 2):
         for dj in range(-1, 2):
             ii = i + di
             jj = j + dj
-            if not ii and not jj:
+            if di == 0 and dj == 0:
                 continue
-            if R is not None:
-                if ii < 0 or ii >= R:
+            if mi is not None:
+                if ii < 0 or ii >= mi:
                     continue
-            if C is not None:
-                if jj < 0 or dj >= C:
+            if mj is not None:
+                if jj < 0 or dj >= mj:
                     continue
             yield ii, jj
 
-def n5(i, j, R=None, C=None):
+def n5(i, j, mi=None, mj=None):
+    """(x, y, C, R) or (i, j, R, C)"""
     yield i, j
-    yield from n4(i, j, R, C)
+    yield from n4(i, j, mi, mj)
 
-def n9(i, j, R=None, C=None):
+def n9(i, j, mi=None, mj=None):
+    """(x, y, C, R) or (i, j, R, C)"""
     yield i, j
-    yield from n8(i, j, R, C)
+    yield from n8(i, j, mi, mj)
 
 def n4d(pt):
     d = len(pt)
@@ -296,30 +282,40 @@ def n8d(pt):
             pt2[i] += sgn
         yield tuple(pt2)
 
-def rline(x0, y0, x1, y1):
-    # handles horizontal, vertical, and diagonal lines
-    if x0 == x1:
-        y0, y1 = sorted((y0, y1))
-        for y in range(y0, y1 + 1):
-            yield x0, y
-    elif y0 == y1:
-        x0, x1 = sorted((x0, x1))
-        for x in range(x0, x1 + 1):
-            yield x, y0
-    else:
-        assert abs(x1 - x0) == abs(y1 - y0), 'line is neither horizontal, vertical, nor diagonal'
-        dx = 1 if x1 > x0 else -1
-        dy = 1 if y1 > y0 else -1
-        x = x0
-        y = y0
-        while x != x1:
-            yield x, y
-            x += dx
-            y += dy
-        yield x, y
-
 def ints(s, expected=None):
     res = map(int, re.findall(r'-?\d+', s))
     if expected is not None:
         assert len(res) == expected, f"for string {s}, expected {expected} ints, got {len(res)} ({res})"
     return res
+
+
+def rline(x1, y1, x2, y2, unhinged=False):
+    d = math.gcd(x2 - x1, y2 - y1) or 1
+    assert d >= 1
+    dy = (y2 - y1) // d
+    dx = (x2 - x1) // d
+    if not unhinged:
+        assert dx in (-1, 0, 1) and dy in (-1, 0, 1), f"line ({x1}, {y1}) -> ({x2}, {y2}) is not horizontal, vertical, or 45 degree diagonal"
+    while True:
+        yield x1, y1
+        if (x1, y1) == (x2, y2): break
+        x1 += dx
+        y1 += dy
+
+def _util_test():
+    assert list(rline(1, 1, 1, 1)) == [(1, 1)]
+    assert list(rline(1, 1, 3, 1)) == [(1, 1), (2, 1), (3, 1)]
+    assert list(rline(1, 3, 1, 1)) == [(1, 3), (1, 2), (1, 1)]
+    assert list(rline(5, -3, 7, -5)) == [(5, -3), (6, -4), (7, -5)]
+    assert list(rline(-6, 10, -10, 6)) == [(-6, 10), (-7, 9), (-8, 8), (-9, 7), (-10, 6)]
+    assert list(rline(0, 0, 3, 4, True)) == [(0, 0), (3, 4)]
+    assert list(rline(-106, -108, -100, -100, True)) == [(-106, -108), (-103, -104), (-100, -100)]
+    assert list(rline(-106, 108, -100, 100, True)) == [(-106, 108), (-103, 104), (-100, 100)]
+    assert list(rline(106, -108, 100, -100, True)) == [(106, -108), (103, -104), (100, -100)]
+    assert list(rline(106, 108, 100, 100, True)) == [(106, 108), (103, 104), (100, 100)]
+
+    assert ints('1 2 3 45 + 67 = -89,(90,91,92) asdf93asdf') == [1, 2, 3, 45, 67, -89, 90, 91, 92, 93]
+
+
+if __name__ == '__main__':
+    _util_test()
